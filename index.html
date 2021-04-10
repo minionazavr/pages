@@ -1,169 +1,72 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Basic Snake HTML Game</title>
-  <meta charset="UTF-8">
-  <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-
-  body {
-    background: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  canvas {
-    border: 1px solid white;
-  }
-  </style>
-</head>
-<body>
-<canvas width="400" height="400" id="game"></canvas>
-<script>
-var canvas = document.getElementById('game');
-var context = canvas.getContext('2d');
-
-var grid = 16;
-var count = 0;
-
-var snake = {
-  x: 160,
-  y: 160,
-
-  // snake velocity. moves one grid length every frame in either the x or y direction
-  dx: grid,
-  dy: 0,
-
-  // keep track of all grids the snake body occupies
-  cells: [],
-
-  // length of the snake. grows when eating an apple
-  maxCells: 4
-};
-var apple = {
-  x: 320,
-  y: 320
-};
-
-// get random whole numbers in a specific range
-// @see https://stackoverflow.com/a/1527820/2124254
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-// game loop
+// Игровой цикл — основной процесс, внутри которого будет всё происходить
 function loop() {
+  // Дальше будет хитрая функция, которая замедляет скорость игры с 60 кадров в секунду до 15. Для этого она пропускает три кадра из четырёх, то есть срабатывает каждый четвёртый кадр игры. Было 60 кадров в секунду, станет 15.
   requestAnimationFrame(loop);
-
-  // slow game loop to 15 fps instead of 60 (60/15 = 4)
+  // Игровой код выполнится только один раз из четырёх, в этом и суть замедления кадров, а пока переменная count меньше четырёх, код выполняться не будет.
   if (++count < 4) {
     return;
   }
-
+  // Обнуляем переменную скорости
   count = 0;
-  context.clearRect(0,0,canvas.width,canvas.height);
-
-  // move snake by it's velocity
+  // Очищаем игровое поле
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  // Двигаем змейку с нужной скоростью
   snake.x += snake.dx;
   snake.y += snake.dy;
-
-  // wrap snake position horizontally on edge of screen
+  // Если змейка достигла края поля по горизонтали — продолжаем её движение с противоположной стороны
   if (snake.x < 0) {
     snake.x = canvas.width - grid;
   }
   else if (snake.x >= canvas.width) {
     snake.x = 0;
   }
-
-  // wrap snake position vertically on edge of screen
+  // Делаем то же самое для движения по вертикали
   if (snake.y < 0) {
     snake.y = canvas.height - grid;
   }
   else if (snake.y >= canvas.height) {
     snake.y = 0;
   }
-
-  // keep track of where snake has been. front of the array is always the head
-  snake.cells.unshift({x: snake.x, y: snake.y});
-
-  // remove cells as we move away from them
+  // Продолжаем двигаться в выбранном направлении. Голова всегда впереди, поэтому добавляем её координаты в начало массива, который отвечает за всю змейку.
+  snake.cells.unshift({ x: snake.x, y: snake.y });
+  // Сразу после этого удаляем последний элемент из массива змейки, потому что она движется и постоянно особождает клетки после себя
   if (snake.cells.length > snake.maxCells) {
     snake.cells.pop();
   }
-
-  // draw apple
+  // Рисуем еду — красное яблоко
   context.fillStyle = 'red';
-  context.fillRect(apple.x, apple.y, grid-1, grid-1);
-
-  // draw snake one cell at a time
+  context.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+  // Одно движение змейки — один новый нарисованный квадратик 
   context.fillStyle = 'green';
-  snake.cells.forEach(function(cell, index) {
-
-    // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
-    context.fillRect(cell.x, cell.y, grid-1, grid-1);
-
-    // snake ate apple
+  // Обрабатываем каждый элемент змейки
+  snake.cells.forEach(function (cell, index) {
+    // Чтобы создать эффект клеточек, делаем зелёные квадратики меньше на один пиксель, чтобы вокруг них образовалась чёрная граница
+    context.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+    // Если змейка добралась до яблока...
     if (cell.x === apple.x && cell.y === apple.y) {
+      // увеличиваем длину змейки
       snake.maxCells++;
-
-      // canvas is 400x400 which is 25x25 grids
+      // Рисуем новое яблочко
+      // Помним, что размер холста у нас 400x400, при этом он разбит на ячейки — 25 в каждую сторону
       apple.x = getRandomInt(0, 25) * grid;
       apple.y = getRandomInt(0, 25) * grid;
     }
-
-    // check collision with all cells after this one (modified bubble sort)
+    // Проверяем, не столкнулась ли змея сама с собой
+    // Для этого перебираем весь массив и смотрим, есть ли у нас в массиве змейки две клетки с одинаковыми координатами 
     for (var i = index + 1; i < snake.cells.length; i++) {
-
-      // snake occupies same space as a body part. reset game
+      // Если такие клетки есть — начинаем игру заново
       if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        // Задаём стартовые параметры основным переменным
         snake.x = 160;
         snake.y = 160;
         snake.cells = [];
         snake.maxCells = 4;
         snake.dx = grid;
         snake.dy = 0;
-
+        // Ставим яблочко в случайное место
         apple.x = getRandomInt(0, 25) * grid;
         apple.y = getRandomInt(0, 25) * grid;
       }
     }
   });
 }
-
-// listen to keyboard events to move the snake
-document.addEventListener('keydown', function(e) {
-  // prevent snake from backtracking on itself by checking that it's
-  // not already moving on the same axis (pressing left while moving
-  // left won't do anything, and pressing right while moving left
-  // shouldn't let you collide with your own body)
-
-  // left arrow key
-  if (e.which === 37 && snake.dx === 0) {
-    snake.dx = -grid;
-    snake.dy = 0;
-  }
-  // up arrow key
-  else if (e.which === 38 && snake.dy === 0) {
-    snake.dy = -grid;
-    snake.dx = 0;
-  }
-  // right arrow key
-  else if (e.which === 39 && snake.dx === 0) {
-    snake.dx = grid;
-    snake.dy = 0;
-  }
-  // down arrow key
-  else if (e.which === 40 && snake.dy === 0) {
-    snake.dy = grid;
-    snake.dx = 0;
-  }
-});
-
-// start the game
-requestAnimationFrame(loop);
-</script>
-</body>
-</html>
