@@ -1,22 +1,169 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>
-Привет!
-</title>
+  <title>Basic Snake HTML Game</title>
+  <meta charset="UTF-8">
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    border: 1px solid white;
+  }
+  </style>
+</head>
 <body>
-<center><h1>Длинноногий 000145236<h1></center>
+<canvas width="400" height="400" id="game"></canvas>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+
+var grid = 16;
+var count = 0;
+
+var snake = {
+  x: 160,
+  y: 160,
+
+  // snake velocity. moves one grid length every frame in either the x or y direction
+  dx: grid,
+  dy: 0,
+
+  // keep track of all grids the snake body occupies
+  cells: [],
+
+  // length of the snake. grows when eating an apple
+  maxCells: 4
+};
+var apple = {
+  x: 320,
+  y: 320
+};
+
+// get random whole numbers in a specific range
+// @see https://stackoverflow.com/a/1527820/2124254
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// game loop
+function loop() {
+  requestAnimationFrame(loop);
+
+  // slow game loop to 15 fps instead of 60 (60/15 = 4)
+  if (++count < 4) {
+    return;
+  }
+
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+
+  // move snake by it's velocity
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+
+  // wrap snake position horizontally on edge of screen
+  if (snake.x < 0) {
+    snake.x = canvas.width - grid;
+  }
+  else if (snake.x >= canvas.width) {
+    snake.x = 0;
+  }
+
+  // wrap snake position vertically on edge of screen
+  if (snake.y < 0) {
+    snake.y = canvas.height - grid;
+  }
+  else if (snake.y >= canvas.height) {
+    snake.y = 0;
+  }
+
+  // keep track of where snake has been. front of the array is always the head
+  snake.cells.unshift({x: snake.x, y: snake.y});
+
+  // remove cells as we move away from them
+  if (snake.cells.length > snake.maxCells) {
+    snake.cells.pop();
+  }
+
+  // draw apple
+  context.fillStyle = 'red';
+  context.fillRect(apple.x, apple.y, grid-1, grid-1);
+
+  // draw snake one cell at a time
+  context.fillStyle = 'green';
+  snake.cells.forEach(function(cell, index) {
+
+    // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
+    context.fillRect(cell.x, cell.y, grid-1, grid-1);
+
+    // snake ate apple
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+
+      // canvas is 400x400 which is 25x25 grids
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+
+    // check collision with all cells after this one (modified bubble sort)
+    for (var i = index + 1; i < snake.cells.length; i++) {
+
+      // snake occupies same space as a body part. reset game
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        snake.x = 160;
+        snake.y = 160;
+        snake.cells = [];
+        snake.maxCells = 4;
+        snake.dx = grid;
+        snake.dy = 0;
+
+        apple.x = getRandomInt(0, 25) * grid;
+        apple.y = getRandomInt(0, 25) * grid;
+      }
+    }
+  });
+}
+
+// listen to keyboard events to move the snake
+document.addEventListener('keydown', function(e) {
+  // prevent snake from backtracking on itself by checking that it's
+  // not already moving on the same axis (pressing left while moving
+  // left won't do anything, and pressing right while moving left
+  // shouldn't let you collide with your own body)
+
+  // left arrow key
+  if (e.which === 37 && snake.dx === 0) {
+    snake.dx = -grid;
+    snake.dy = 0;
+  }
+  // up arrow key
+  else if (e.which === 38 && snake.dy === 0) {
+    snake.dy = -grid;
+    snake.dx = 0;
+  }
+  // right arrow key
+  else if (e.which === 39 && snake.dx === 0) {
+    snake.dx = grid;
+    snake.dy = 0;
+  }
+  // down arrow key
+  else if (e.which === 40 && snake.dy === 0) {
+    snake.dy = grid;
+    snake.dx = 0;
+  }
+});
+
+// start the game
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
-<i>Здравствуйте уважаемые читатели этой страницы. Я как человек не верящий во всю эту мистику, но увлекающийся ею, столкнулся с ужасным явлением в самой игре Minecraft! представляете, в обычной песочнице, которая была сделана для развлечения! меня застало такое, от чего мурашки бегут по телу!"
-
-Меня напугал один очень интересный случай. Я скачал пиратский Minecraft с интернета, не подозревая о том, что спокойно у меня поиграть в него не получится. После каждой генерации нового мира начинали происходить очень странные вещи. На карте генерировались деревья с обрубленными на половину листьями, по всему миру появлялись большие ямы, биом находил на биом. Я включил программу для записи. Я её всегда включал, когда заходил в игру. Но последние кадры, которые я сделал шокировали меня! За мной постоянно следило существо, которое если так приметить, 4-4,5 блока в высоту. Я его чудом не увидел. Оно спокойно стояло и не шевелилось, смотря на меня. Это существо на несколько блоков выше эндермена и имеет скин обычного игрока. Он нереально высок и иногда стоит вровень с малыми деревьями. Оно может менять свой скин и перемещаться с высокой скоростью.
-
-Это были последние кадры видеозаписи, где я застал его. Но если кто-то увидит его, то главное не подходите к нему, оно нанесёт смерть вашей системе, ведь в конце последнего сеанса записи я успел сохранить одно видео и несколько фотографий, среди которых фото и других людей...
-
-Второе видео записано позже...Где он снова появился, но уже очень близко...
-
-Я создал тему на форуме Minecraft, который называется "minecraft inside" меня там зовут "FUdErDuss" и да мне 19 лет. в обсуждениях игры я поднял эту тему, спросив у других читающих "с вами было такое?" . Несколько пользователей создали тему, что видели его, и у них было тоже самое.
-
-Примечание: Если начать подходить к нему в плотную, то ваш Minecraft вылетит с ошибкой "kill000145236" и после чего ваша система сломается, то есть вылезет экран смерти. мне из-за этого пришлось переустанавливать систему!
-
-И под конец своих размышлений скажу: Minecraft я удалил и больше в него не играю и играть не буду. Я никогда не встречал подобного в Minecraft. Оно убило мою систему, но благо у меня был носитель с копией той самой системы. Встречал я его на версии 1.5.2, где по сути нет ничего мистического и опасного и быть не должно, но и на версии Beta 1.8.1.</i>
