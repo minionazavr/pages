@@ -1,155 +1,319 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-<meta charset="utf-8" />
-<title>Спасём птиц!</title>
+  <title>Basic Tetris HTML Game</title>
+  <meta charset="UTF-8">
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  canvas {
+    border: 1px solid white;
+  }
+  </style>
 </head>
 <body>
-<!--Создаём таблицу контейнер, которой задаём следующее
-оформление:
-border="1" - рамка вокруг контейнера. Увеличив число, можно увеличить толщину рамки.
-align="center" - размещаем контейнер по центру экрана.
-rules="rows" - убираем двойную рамку.
-style="width:60%;" - добавляем стилевое свойства, делающее
-контейнер и весь сайт "резиновым".
-Сделать полноценный адаптивный дизайн, этим способом невозможно.-->
-<table
-border="1"
-align="center"
-rules="rows"
-style="width:60%;">
-<!--Создаём строку-->
-<tr>
-<!--Создаём ячейку строки-->
-<td>
-<!--ШАПКА САЙТА-->
+<canvas width="320" height="640" id="game"></canvas>
+<script>
+// https://tetris.fandom.com/wiki/Tetris_Guideline
 
-<!--В ячейке строки создаём ещё одну таблицу для шапки сайта.
-Оформление:
-border="1" - двойная рамка толщиной в 1px
-background="images/168.png" - картинка в шапке сайта, если требуется.
-Адрес картинки вы должны вставить свой.
-bgcolor="#7FFFD4" - фоновый цвет в шапке, если нет картинки.
-cellpadding="10" - отступ содержимого от рамки не менее 10px.
-style="width:100%; border-radius:5px;" - добавляем "резиновость"
-и закругляем уголки рамки-->
-<table
-border="1"
-background="images/168.png"
-bgcolor="#7FFFD4"
-cellpadding="10"
-style="width:100%; border-radius:5px;">
-<!--Создаём строку таблицы-->
-<tr>
-<!--Создаём столбец таблицы-->
-<th>
-<!--Содержание ячейки столбца-->
-<h1>Спасём птиц!</h1>
-<h3>Этот сайт призывает людей хронить птиц</h3>
-<!--Закрываем таблицу-->
-</th>
-</tr>
-</table>
+// get a random integer between the range of [min,max]
+// @see https://stackoverflow.com/a/1527820/2124254
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
 
-<!--ОСНОВНОЙ КОНТЕНТ-->
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-<!--В этой же ячейке контейнера создаём ещё одну таблицу
-для основного контента.
-Оформление как и в предыдущей таблице-->
+// generate a new tetromino sequence
+// @see https://tetris.fandom.com/wiki/Random_Generator
+function generateSequence() {
+  const sequence = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 
-<table
-border="1"
-bgcolor="#FFFACD"
-cellpadding="10"
-style="width:100%; border-radius:5px;">
-<!--Создаём строку-->
-<tr>
-<!--Создаём ячейку
-Оформление:
-rowspan="2" - объединяем две ячейки в одну.
-Число объединяемых ячеек по числу ячеек в сайдбаре.
-style="width:80%" - основной контент занимает 80% всей площади,
-оставшиеся 20% для сайдбара-->
-<td
-rowspan="2"
-style="width:80%">
-<h2>Страница</h2>
-<!--Начинаем абзац с красной строки-->
-<p style="text-indent:20px">
-Здравствуйте дорогие читатели страницы! Я хочю чтобы птицы оставались живимы, и этот сайт про спасения птиц.</p>
+  while (sequence.length) {
+    const rand = getRandomInt(0, sequence.length - 1);
+    const name = sequence.splice(rand, 1)[0];
+    tetrominoSequence.push(name);
+  }
+}
 
-<p style="text-indent:20px">Почему я решил его сделать?
-Класс Птицы (Пернатые). Птицы - высокоорганизованные позвоночные. Их тело покрыто перьями, передние конечности видоизменены в крылья. Имеют постоянную температуру тела, которая обеспечивается интенсивным обменом веществ. Птицы обладают сложным инстинктивным поведением..</p>
-<!--Закрываем ячейку-->
-</td>
+// get the next tetromino in the sequence
+function getNextTetromino() {
+  if (tetrominoSequence.length === 0) {
+    generateSequence();
+  }
 
-<!--САЙДБАР-->
+  const name = tetrominoSequence.pop();
+  const matrix = tetrominos[name];
 
-<!--Создаём ячейку сайдбара-->
-<td bgcolor="#e6e6fa">
-<h3>Меню</h3>
-<!--Абзац для ссылки на страницу сайта-->
-<p>
-<!--Ссылка на страницу сайта-->
-<a href="">
-<!--Картинка маркера перед названием страницы-->
-<img src="http://trueimages.ru/img/00/06/f4fffdb5.png">
-<!--Название страницы
-style="margin-left:5px;" - отступ названия от маркера-->
-<span style="margin-left:5px;">Страница</span></a>
-<!--Закрываем абзац-->
-</p>
-<p>
-<a href="">
-<img src="http://trueimages.ru/img/31/ab/4dcb087c2ae4305edcd15171696.jpg">
-<span style="margin-left:5px;">Страница 1</span;></a>
-</p>
-<p>
-<a href="">
-<img src="http://trueimages.ru/img/31/ab/4dcb087c2ae4305edcd15171696.jpg">
-<span style="margin-left:5px;">Страница 2</span></a>
-</p>
-<!--Закрываем строку Меню-->
-</td>
-</tr>
-<!--Создаём строку с дополнительной информацией-->
-<tr>
-<!--Ячейка с дополнительной информацией-->
-<td
-bgcolor="#e6e6fa"
-align="center">
-<h3>1. Птицы являются социальными животными, которые общаются между собой при помощи визуальных и звуковых сигналов, и выполняют в ряде случаев общественные действия: коммунальное гнездование, совместная охота или защита от хищников. [1] 2. Птицы населяют все экосистемы земного шара, включая Антарктиду. [1] 3. По состоянию на начало 2017 года науке известно 10 672 вида ныне живущих птиц. Это делает их наиболее разнообразной группой животных. [1] 4. Наука, занимающаяся изучением птиц, называется орнитологией.  5. Самым маленьким видом птиц в мире считается колибри-пчёлка, длина тела которой не превышает 5,7 сантиметров. [1] 6. Колибри являются единственными в мире птицами, которые могут летать назад. [2] 7. Самой крупной птицей является африканский страус, высота которого достигает 2,7 метров с массой тела до 156 килограмм. [1] 8. Самым большим размахом крыльев среди ныне живущих птиц обладает странствующий альбатрос — до 3,25 метров. [1] 9. Совы не могут двигать глазами — вместо этого они поворачивают голову до 270° без вреда для здоровья. [3]  10. Единственной птицей с ноздрями на конце клюва является киви. Такое расположение помогает им вынюхать пищу на земле. Они часто фыркают, чтобы очистить ноздри от накопившейся пыли и земли. [4] 11. Самой болтливой птицей считается жако (серый попугай). В среднем он может запомнить более 1500 слов. [5] 12. В прежнее время рудокопы часто брали клетку с канарейкой в шахту и во время работы следили за птицей. Если она внезапно начинала проявлять признаки беспокойства или падала, люди поспешно покидали шахту. Дело в том, что канарейки очень чувствительны к газам, и гибнут даже от его незначительной примеси в воздухе. [6] 13. Горловые мешки пеликанов вмещают до 5 литров воды. [7] 14. В связи с тем, что полёт требует больших затрат мышечной энергии, уровень обмена веществ у птиц чрезвычайно высок и потребность в пище велика. Её дневная норма составляет 12-28 % от общей массы тела. [1]
-Источник: https://zagge.ru/40-zanimatelnyx-faktov-o-pticax/</h3>
-<p>Тут пусто.</p>
-<!--Закрываем ячейку с общей информацией
-и таблицу основного контента-->
-</td>
-</tr>
-</table>
+  // I and O start centered, all others start in left-middle
+  const col = playfield[0].length / 2 - Math.ceil(matrix[0].length / 2);
 
-<!--ПОДВАЛ-->
+  // I starts on row 21 (-1), all others start on row 22 (-2)
+  const row = name === 'I' ? -1 : -2;
 
-<!--Создаём таблицу подвала-->
-<table
-border="1"
-bgcolor="#7FFFD4"
-height="100"
-cellpadding="10"
-style="width:100%; border-radius:5px;">
-<!--Создаём строку.-->
-<tr>
-<!--Создаём столбец-->
-<th>
-<h3>Подвал</h3>
-<!--Закрываем таблицу подвала. При желании в подвале можно
-сделать несколько строк и столбцов-->
-</th>
-</tr>
-</table>
-<!--Закрываем таблицу контейнера-->
-</td>
-</tr>
-</table>
+  return {
+    name: name,      // name of the piece (L, O, etc.)
+    matrix: matrix,  // the current rotation matrix
+    row: row,        // current row (starts offscreen)
+    col: col         // current col
+  };
+}
+
+// rotate an NxN matrix 90deg
+// @see https://codereview.stackexchange.com/a/186834
+function rotate(matrix) {
+  const N = matrix.length - 1;
+  const result = matrix.map((row, i) =>
+    row.map((val, j) => matrix[N - j][i])
+  );
+
+  return result;
+}
+
+// check to see if the new matrix/row/col is valid
+function isValidMove(matrix, cellRow, cellCol) {
+  for (let row = 0; row < matrix.length; row++) {
+    for (let col = 0; col < matrix[row].length; col++) {
+      if (matrix[row][col] && (
+          // outside the game bounds
+          cellCol + col < 0 ||
+          cellCol + col >= playfield[0].length ||
+          cellRow + row >= playfield.length ||
+          // collides with another piece
+          playfield[cellRow + row][cellCol + col])
+        ) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+// place the tetromino on the playfield
+function placeTetromino() {
+  for (let row = 0; row < tetromino.matrix.length; row++) {
+    for (let col = 0; col < tetromino.matrix[row].length; col++) {
+      if (tetromino.matrix[row][col]) {
+
+        // game over if piece has any part offscreen
+        if (tetromino.row + row < 0) {
+          return showGameOver();
+        }
+
+        playfield[tetromino.row + row][tetromino.col + col] = tetromino.name;
+      }
+    }
+  }
+
+  // check for line clears starting from the bottom and working our way up
+  for (let row = playfield.length - 1; row >= 0; ) {
+    if (playfield[row].every(cell => !!cell)) {
+
+      // drop every row above this one
+      for (let r = row; r >= 0; r--) {
+        for (let c = 0; c < playfield[r].length; c++) {
+          playfield[r][c] = playfield[r-1][c];
+        }
+      }
+    }
+    else {
+      row--;
+    }
+  }
+
+  tetromino = getNextTetromino();
+}
+
+// show the game over screen
+function showGameOver() {
+  cancelAnimationFrame(rAF);
+  gameOver = true;
+
+  context.fillStyle = 'black';
+  context.globalAlpha = 0.75;
+  context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+
+  context.globalAlpha = 1;
+  context.fillStyle = 'white';
+  context.font = '36px monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2);
+}
+
+const canvas = document.getElementById('game');
+const context = canvas.getContext('2d');
+const grid = 32;
+const tetrominoSequence = [];
+
+// keep track of what is in every cell of the game using a 2d array
+// tetris playfield is 10x20, with a few rows offscreen
+const playfield = [];
+
+// populate the empty state
+for (let row = -2; row < 20; row++) {
+  playfield[row] = [];
+
+  for (let col = 0; col < 10; col++) {
+    playfield[row][col] = 0;
+  }
+}
+
+// how to draw each tetromino
+// @see https://tetris.fandom.com/wiki/SRS
+const tetrominos = {
+  'I': [
+    [0,0,0,0],
+    [1,1,1,1],
+    [0,0,0,0],
+    [0,0,0,0]
+  ],
+  'J': [
+    [1,0,0],
+    [1,1,1],
+    [0,0,0],
+  ],
+  'L': [
+    [0,0,1],
+    [1,1,1],
+    [0,0,0],
+  ],
+  'O': [
+    [1,1],
+    [1,1],
+  ],
+  'S': [
+    [0,1,1],
+    [1,1,0],
+    [0,0,0],
+  ],
+  'Z': [
+    [1,1,0],
+    [0,1,1],
+    [0,0,0],
+  ],
+  'T': [
+    [0,1,0],
+    [1,1,1],
+    [0,0,0],
+  ]
+};
+
+// color of each tetromino
+const colors = {
+  'I': 'cyan',
+  'O': 'yellow',
+  'T': 'purple',
+  'S': 'green',
+  'Z': 'red',
+  'J': 'blue',
+  'L': 'orange'
+};
+
+let count = 0;
+let tetromino = getNextTetromino();
+let rAF = null;  // keep track of the animation frame so we can cancel it
+let gameOver = false;
+
+// game loop
+function loop() {
+  rAF = requestAnimationFrame(loop);
+  context.clearRect(0,0,canvas.width,canvas.height);
+
+  // draw the playfield
+  for (let row = 0; row < 20; row++) {
+    for (let col = 0; col < 10; col++) {
+      if (playfield[row][col]) {
+        const name = playfield[row][col];
+        context.fillStyle = colors[name];
+
+        // drawing 1 px smaller than the grid creates a grid effect
+        context.fillRect(col * grid, row * grid, grid-1, grid-1);
+      }
+    }
+  }
+
+  // draw the active tetromino
+  if (tetromino) {
+
+    // tetromino falls every 35 frames
+    if (++count > 35) {
+      tetromino.row++;
+      count = 0;
+
+      // place piece if it runs into anything
+      if (!isValidMove(tetromino.matrix, tetromino.row, tetromino.col)) {
+        tetromino.row--;
+        placeTetromino();
+      }
+    }
+
+    context.fillStyle = colors[tetromino.name];
+
+    for (let row = 0; row < tetromino.matrix.length; row++) {
+      for (let col = 0; col < tetromino.matrix[row].length; col++) {
+        if (tetromino.matrix[row][col]) {
+
+          // drawing 1 px smaller than the grid creates a grid effect
+          context.fillRect((tetromino.col + col) * grid, (tetromino.row + row) * grid, grid-1, grid-1);
+        }
+      }
+    }
+  }
+}
+
+// listen to keyboard events to move the active tetromino
+document.addEventListener('keydown', function(e) {
+  if (gameOver) return;
+
+  // left and right arrow keys (move)
+  if (e.which === 37 || e.which === 39) {
+    const col = e.which === 37
+      ? tetromino.col - 1
+      : tetromino.col + 1;
+
+    if (isValidMove(tetromino.matrix, tetromino.row, col)) {
+      tetromino.col = col;
+    }
+  }
+
+  // up arrow key (rotate)
+  if (e.which === 38) {
+    const matrix = rotate(tetromino.matrix);
+    if (isValidMove(matrix, tetromino.row, tetromino.col)) {
+      tetromino.matrix = matrix;
+    }
+  }
+
+  // down arrow key (drop)
+  if(e.which === 40) {
+    const row = tetromino.row + 1;
+
+    if (!isValidMove(tetromino.matrix, row, tetromino.col)) {
+      tetromino.row = row - 1;
+
+      placeTetromino();
+      return;
+    }
+
+    tetromino.row = row;
+  }
+});
+
+// start the game
+rAF = requestAnimationFrame(loop);
+</script>
 </body>
 </html>
-
